@@ -93,3 +93,13 @@ cd splitwise-clone
    | `/query` | POST | (Optional) Ask questions using the chatbot |
    
  📖 For full API docs, visit: `http://localhost:8000/docs` 
+
+## Images
+### Home Page
+![Home Page](./images/home.png)
+
+### Groups Page
+![Groups Page](./images/group_detail.png)
+
+### Add Expense Page
+![Add Expense](./images/expense.png)
