@@ -17,9 +17,10 @@ export interface GroupBalance {
 }
 
 export interface UserBalance {
-  group_name: string
-  other_user: string
+  owes_to_user_id: number
   amount: number
+  other_user_name: string
+  direction: "user_is_owed" | "user_owes"
 }
 
 export interface Expense {
