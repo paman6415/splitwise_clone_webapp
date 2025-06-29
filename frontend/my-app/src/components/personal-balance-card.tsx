@@ -22,7 +22,10 @@ export function PersonalBalanceCard() {
     setLoading(true)
     try {
       const data = await getUserBalances(userId)
-      setBalances(data)
+      console.log("Raw API response:", data)
+
+      // setBalances(data)
+      setBalances(Array.isArray(data.balances) ? data.balances : [])
       setSearched(true)
     } catch (error) {
       console.error("Failed to fetch user balances:", error)
@@ -33,8 +36,14 @@ export function PersonalBalanceCard() {
     }
   }
 
-  const totalOwed = balances.reduce((sum, balance) => sum + Math.max(0, balance.amount), 0)
-  const totalOwing = balances.reduce((sum, balance) => sum + Math.max(0, -balance.amount), 0)
+const totalOwed = balances
+  .filter(balance => balance.direction === "user_is_owed")
+  .reduce((sum, balance) => sum + balance.amount, 0)
+
+const totalOwing = balances
+  .filter(balance => balance.direction === "user_owes")
+  .reduce((sum, balance) => sum + balance.amount, 0)
+
 
   return (
     <Card className="mb-8">
@@ -93,19 +102,22 @@ export function PersonalBalanceCard() {
                   {balances.map((balance, index) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
-                        <span className="font-medium">{balance.group_name}</span>
+                        <span className="font-medium">User {balance.other_user_name}</span>
                         <p className="text-sm text-gray-600">
-                          {balance.amount > 0 ? `${balance.other_user} owes you` : `You owe ${balance.other_user}`}
+                          {balance.direction === "user_is_owed"
+                            ? `User ${balance.other_user_name} owes you`
+                            : `You owe User ${balance.other_user_name}`}
                         </p>
                       </div>
                       <Badge
-                        variant={balance.amount > 0 ? "default" : "destructive"}
-                        className={balance.amount > 0 ? "bg-green-100 text-green-800" : ""}
+                        variant={balance.direction === "user_is_owed" ? "default" : "destructive"}
+                        className={balance.direction === "user_is_owed" ? "bg-green-100 text-green-800" : ""}
                       >
-                        ${Math.abs(balance.amount).toFixed(2)}
+                        ${balance.amount.toFixed(2)}
                       </Badge>
                     </div>
                   ))}
+
                 </div>
               </>
             )}
