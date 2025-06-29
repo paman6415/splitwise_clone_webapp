@@ -51,22 +51,44 @@ def get_group_balances(db: Session, group_id: int):
         "balances": net_balances
     }
 
+
 def get_user_balances(db: Session, user_id: int):
+    balances = defaultdict(float)  # balances[other_user_id] = net amount
+
     expenses = db.query(Expense).all()
-    balances = defaultdict(float)  # balances[to_user] = amount owed by current user
 
     for expense in expenses:
         splits = db.query(ExpenseSplit).filter(ExpenseSplit.expense_id == expense.id).all()
-        for split in splits:
-            if split.user_id == user_id and expense.paid_by != user_id:
-                balances[expense.paid_by] += float(split.amount)
+        payer_id = expense.paid_by
 
-    # Return list of debts from current user to others
+        for split in splits:
+            if split.user_id == payer_id:
+                continue
+
+            if user_id == payer_id and split.user_id != user_id:
+                balances[split.user_id] += float(split.amount)
+
+            elif split.user_id == user_id and payer_id != user_id:
+                balances[payer_id] -= float(split.amount)
+
     result = []
-    for to_user, amount in balances.items():
+    for other_user_id, amount in balances.items():
+        other_user = db.query(User).filter(User.id == other_user_id).first()
+        other_user_name = other_user.name if other_user else "Unknown"
+
         if amount > 0:
             result.append({
-                "owes_to_user_id": to_user,
-                "amount": round(amount, 2)
+                "owes_to_user_id": other_user_id,
+                "other_user_name": other_user_name,
+                "amount": round(amount, 2),
+                "direction": "user_is_owed"
             })
+        elif amount < 0:
+            result.append({
+                "owes_to_user_id": other_user_id,
+                "other_user_name": other_user_name,
+                "amount": round(-amount, 2),
+                "direction": "user_owes"
+            })
+
     return result
