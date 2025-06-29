@@ -156,8 +156,13 @@ export function AddExpenseDialog({ open, onOpenChange, groupId, groupUsers, onEx
             <Label htmlFor="paidBy">Paid By</Label>
             <Select value={paidBy} onValueChange={setPaidBy} required>
               <SelectTrigger>
-                <SelectValue placeholder="Select who paid" />
+                <div className="truncate px-3 py-2 text-sm">
+                  {paidBy
+                    ? groupUsers.find((user) => String(user.id) === String(paidBy))?.name || "Unknown user"
+                    : "Select who paid"}
+                </div>
               </SelectTrigger>
+
               <SelectContent>
                 {groupUsers.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
